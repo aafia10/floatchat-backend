@@ -1,0 +1,7 @@
+pyodbc
+pandas
+chromadb
+sentence-transformers
+requests
+python-dotenv
+streamlit
