@@ -1,36 +1,28 @@
-# Byte-compiled / cache
+# Python
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
 *.pyd
-*.so
+*.db
+*.sqlite3
 
-# Virtual environments
+# Environment
+.env
 venv/
 .venv/
-ENV/
-env/
-*.venv
 
-# Environment variables
-.env
-
-# IDEs / Editors
+# VSCode
 .vscode/
-.idea/
 
-# Jupyter
-.ipynb_checkpoints/
-
-# ChromaDB local store
-chroma_store/
-
-# Generated data/outputs
+# Output / Data
 output/
+*.json
+*.accdb
+*.mdb
+
+# Checkpoints
+chroma_upload_checkpoint.txt
 
 # OS files
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
