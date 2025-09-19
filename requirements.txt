@@ -46,3 +46,4 @@ rsa==4.9.1
 tokenizers==0.22.1
 urllib3==2.5.0
 uvicorn==0.35.0
+sentence-transformers==2.2.2
