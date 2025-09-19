@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from mcpServer import ask_llm
-from src.query_rag import rag_query
+from argo_rag.mcpServer import ask_llm
+from argo_rag.src.query_rag import rag_query
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 DATABASE_URI = os.getenv("DATABASE_URI")
