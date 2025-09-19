@@ -1,7 +1,12 @@
-pyodbc
-pandas
-chromadb
-sentence-transformers
-requests
-python-dotenv
-streamlit
+# Core
+langchain==0.3.7
+chromadb==0.5.5
+sentence-transformers==2.2.2
+python-dotenv==1.0.1
+requests==2.31.0
+
+# Database access
+pyodbc==5.1.0
+
+numpy==1.26.4
+torch>=2.0.0

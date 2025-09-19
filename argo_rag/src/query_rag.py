@@ -1,84 +1,92 @@
 import os
+import time
 import requests
-import chromadb
-from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
+from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
+import chromadb
 
+# ---------------- Load Environment ---------------- #
 load_dotenv()
-API_KEY = os.getenv("PERPLEXITY_API_KEY")
-MODEL_NAME = os.getenv("PERPLEXITY_MODEL", "sonar")  # default valid model
 
-# Init Chroma
-client = chromadb.PersistentClient(path="./chroma_store")
-collection = client.get_or_create_collection("argo_data")
-
-# Embedding model
-embedder = SentenceTransformer("all-MiniLM-L6-v2")
+CHROMA_API_KEY = os.getenv("CHROMA_API_KEY")
+CHROMA_TENANT = os.getenv("CHROMA_TENANT")
+CHROMA_DATABASE = os.getenv("CHROMA_DATABASE")
+PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 
 
-def query_perplexity(prompt: str) -> str:
-    """Send query to Perplexity API"""
+PERPLEXITY_MODEL = os.getenv("PERPLEXITY_MODEL", "sonar-pro")
+
+COLLECTION_NAME = "argo_collection"
+
+
+# ---------------- Perplexity API ---------------- #
+def query_perplexity(prompt: str, retries: int = 3) -> str:
     url = "https://api.perplexity.ai/chat/completions"
     headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
+        "Content-Type": "application/json",
     }
     payload = {
-        "model": MODEL_NAME,
+        "model": PERPLEXITY_MODEL,
         "messages": [{"role": "user", "content": prompt}],
     }
 
-    try:
-        resp = requests.post(url, headers=headers, json=payload, timeout=30)
-    except requests.exceptions.Timeout:
-        return "⏱️ Perplexity API request timed out."
-    except Exception as e:
-        return f"❌ Error calling Perplexity API: {e}"
-
-    if resp.status_code != 200:
-        # show error message
+    for attempt in range(retries):
         try:
-            err_json = resp.json()
-        except:
-            err_json = resp.text
-        return f"❌ Perplexity API error ({resp.status_code}): {err_json}"
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+            resp.raise_for_status()
+            resp_json = resp.json()
+            if "choices" in resp_json and resp_json["choices"]:
+                return resp_json["choices"][0].get("message", {}).get("content", "")
+            return "[ERROR] Unexpected response format"
+        except Exception as e:
+            print(f"[WARN] Perplexity query failed (attempt {attempt+1}): {e}")
+            time.sleep(2)  # backoff before retry
 
-    # assume structure has choices → message → content
-    try:
-        return resp.json()["choices"][0]["message"]["content"]
-    except Exception as e:
-        return f"❌ Unexpected response format: {resp.text}"
-
-
-def rag_query(user_query: str, top_k: int = 5) -> str:
-    """Perform RAG query using ChromaDB + Perplexity"""
-    # Check for API key
-    if not API_KEY:
-        return "⚠️ Perplexity API key not set. Please add `PERPLEXITY_API_KEY` to .env."
-
-    if collection.count() == 0:
-        return "⚠️ No documents found in ChromaDB. Please run build_chroma.py first."
-
-    # Create embedding for query
-    q_emb = embedder.encode([user_query]).tolist()[0]
-
-    # Search in Chroma
-    results = collection.query(query_embeddings=[q_emb], n_results=top_k)
-
-    if not results or not results.get("documents"):
-        return "⚠️ No relevant documents found."
-
-    retrieved_docs = [doc for doc in results["documents"][0] if doc.strip()]
-    if not retrieved_docs:
-        return "⚠️ Retrieved docs are empty."
-
-    # Build final prompt
-    context = "\n".join(retrieved_docs)
-    final_prompt = f"Context:\n{context}\n\nQuestion: {user_query}\nAnswer:"
-
-    return query_perplexity(final_prompt)
+    return "[ERROR] Failed after retries"
 
 
+# ---------------- Chroma Cloud ---------------- #
+def get_vectorstore() -> Chroma:
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
+    client = chromadb.CloudClient(
+        api_key=CHROMA_API_KEY,
+        tenant=CHROMA_TENANT,
+        database=CHROMA_DATABASE,
+    )
+
+    return Chroma(
+        collection_name=COLLECTION_NAME,
+        embedding_function=embeddings,
+        client=client,
+    )
+
+
+# ---------------- Initialize VectorStore Once ---------------- #
+print("[INFO] Connecting to Chroma Cloud...")
+vector_store = get_vectorstore()
+print("[INFO] Connected to Chroma Cloud ✅")
+
+
+# ---------------- RAG Query ---------------- #
+def rag_query(user_query: str, top_k: int = 3) -> str:  # ⚡ reduced top_k for speed
+    retriever = vector_store.as_retriever(search_kwargs={"k": top_k})
+    docs = retriever.get_relevant_documents(user_query)
+
+    if not docs:
+        return "No relevant documents found."
+
+    context = "\n\n".join([doc.page_content for doc in docs])
+    prompt = f"Context:\n{context}\n\nQuestion: {user_query}\nAnswer:"
+    return query_perplexity(prompt)
+
+
+# ---------------- Entry Point ---------------- #
 if __name__ == "__main__":
-    q = input("Enter your question: ")
-    print("🤖 Answer:", rag_query(q))
+    while True:
+        q = input("\nAsk a question (or type 'exit'): ")
+        if q.lower() in {"exit", "quit"}:
+            break
+        print("\nAnswer:\n", rag_query(q))

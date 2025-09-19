@@ -1,57 +1,52 @@
-# src/extract_access.py
+import os
+import json
 import pyodbc
+from utils import DATA_DIR, OUTPUT_DIR
 
-def load_access_data(db_path, limit_per_table=5000):
-    """
-    Load data from an Access database and return as documents for Chroma.
-    
-    Args:
-        db_path (str): Path to the .accdb file
-        limit_per_table (int): Max rows to load per table (None = all rows)
-    """
+def load_access_data(db_path: str, out_path: str):
+    if not os.path.exists(db_path):
+        raise FileNotFoundError(f"Database not found: {db_path}")
+
+    print(f"[INFO] Connecting to Access DB: {db_path}")
     conn_str = (
         r"DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};"
         f"DBQ={db_path};"
     )
-    conn = pyodbc.connect(conn_str)
+
+    try:
+        conn = pyodbc.connect(conn_str)
+    except pyodbc.Error as e:
+        raise ConnectionError(f"Failed to connect to Access DB: {e}")
+
     cursor = conn.cursor()
-
     tables = [t.table_name for t in cursor.tables(tableType="TABLE")]
+    print(f"[INFO] Found tables: {tables}")
+
     docs = []
-
     for table in tables:
-        print(f"📑 Reading table: {table}")
-        cursor.execute(f"SELECT * FROM {table}")
-        columns = [column[0] for column in cursor.description]
+        print(f"[INFO] Reading table: {table}")
+        try:
+            cursor.execute(f"SELECT * FROM [{table}]")
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
+        except pyodbc.Error as e:
+            print(f"[WARNING] Could not read table {table}: {e}")
+            continue
 
-        count = 0
-        while True:
-            rows = cursor.fetchmany(500)  # fetch in chunks
-            if not rows:
-                break
-
-            for row in rows:
-                row_dict = dict(zip(columns, row))
-                docs.append({
-                    "id": f"{table}_{count}",
-                    "text": f"Table: {table}\nRow: {row_dict}"
-                })
-                count += 1
-                if limit_per_table and count >= limit_per_table:
-                    break
-
-            if limit_per_table and count >= limit_per_table:
-                print(f"⚠️ Reached limit ({limit_per_table}) for table {table}")
-                break
-
-        print(f"✔️ Loaded {count} rows from {table}")
+        for row in rows:
+            row_dict = dict(zip(columns, row))
+            docs.append({"table": table, "row": row_dict})
 
     conn.close()
+
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(docs, f, indent=2, ensure_ascii=False)
+
+    print(f"[SUCCESS] Exported {len(docs)} rows to {out_path}")
     return docs
 
-
 if __name__ == "__main__":
-    db_path = r"data\ARGO_DB_2004.accdb"
-    docs = load_access_data(db_path, limit_per_table=2000)
-    print(f"\n✅ Total loaded rows: {len(docs)}")
-    print("🔎 Sample:", docs[:2])
+    db_path = os.path.join(DATA_DIR, "ARGO_DB_2004.accdb")
+    out_path = os.path.join(OUTPUT_DIR, "argo_data.json")
+    load_access_data(db_path, out_path)
